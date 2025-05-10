@@ -1,0 +1,7 @@
+netns del router0
+netns del switch0
+netns del switch1
+netns del host0
+netns del host1
+netns del host2
+netns del host3

@@ -1,0 +1,87 @@
+# create a namespace that functions as a router
+# by forwarind packets between ips
+
+netns add router0
+netns exec router0 sysctl -w net.ipv4.ip_forward=1
+
+# the switch namespace wll be connected to the router via a veth pair.
+# in the switch namespace is a bridge that acts as the switch the veth
+# pair end in the routers namespace gets an ip that serves as the
+# default gateway for the switch namespace
+
+# setup switch one
+
+netns add switch0
+
+netns exec switch0 ip link add bridge0 type bridge
+netns exec switch0 ip link set bridge0 up
+
+link add router0 netns switch0 type veth peer switch0 netns router0
+netns exec switch0 ip link set router0 master bridge0
+
+netns exec switch0 ip link set router0 up
+netns exec router0 ip link set switch0 up
+
+netns exec router0 ip addr add 192.168.0.1/24 dev switch0
+netns exec switch0 ip addr add 192.168.0.254/24 dev bridge0
+netns exec switch0 ip route add default via 192.168.0.1 dev bridge0
+
+# add some devices on the switches subnets, devices on each switch
+# should directly communicate with each other, but not with devices
+# on the other switch
+
+netns add host0
+netns exec host0 ip link add eth0 type veth peer host0 netns switch0
+netns exec host0 ip addr add 192.168.0.100/24 dev eth0
+netns exec host0 ip link set eth0 up
+netns exec switch0 ip link set host0 master bridge0
+netns exec switch0 ip link set host0 up
+netns exec host0 ip route add default via 192.168.0.1 dev eth0
+
+netns add host1
+netns exec host1 ip link add eth0 type veth peer host1 netns switch0
+netns exec host1 ip addr add 192.168.0.101/24 dev eth0
+netns exec host1 ip link set eth0 up
+netns exec switch0 ip link set host1 master bridge0
+netns exec switch0 ip link set host1 up
+netns exec host1 ip route add default via 192.168.0.1 dev eth0
+
+
+
+# do the same as above but use a different subnet for the second switch.
+# the default gateway for this namespace also points to the router
+# namespace but at a different ip
+
+netns add switch1
+
+netns exec switch1 ip link add bridge0 type bridge
+netns exec switch1 ip link set bridge0 up
+
+link add router0 netns switch1 type veth peer switch1 netns router0
+netns exec switch1 ip link set router0 master bridge0
+
+netns exec switch1 ip link set router0 up
+netns exec router0 ip link set switch1 up
+
+netns exec router0 ip addr add 192.168.1.1/24 dev switch1
+netns exec switch1 ip addr add 192.168.1.254/24 dev bridge0
+netns exec switch1 ip route add default via 192.168.1.1 dev bridge0
+
+
+netns add host2
+netns exec host2 ip link add eth0 type veth peer host2 netns switch1
+netns exec host2 ip addr add 192.168.1.100/24 dev eth0
+netns exec host2 ip link set eth0 up
+netns exec switch1 ip link set host2 master bridge0
+netns exec switch1 ip link set host2 up
+netns exec host2 ip route add default via 192.168.1.1 dev eth0
+
+netns add host3
+netns exec host3 ip link add eth0 type veth peer host3 netns switch1
+netns exec host3 ip addr add 192.168.1.101/24 dev eth0
+netns exec host3 ip link set eth0 up
+netns exec switch1 ip link set host3 master bridge0
+netns exec switch1 ip link set host3 up
+netns exec host3 ip route add default via 192.168.1.1 dev eth0
+
+
