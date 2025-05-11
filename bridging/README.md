@@ -1,5 +1,11 @@
 # Linux Bridge
 
+```mermaid
+graph BT
+    bridge0 --> box0
+    bridge0 --> box1
+```
+
 Inspect address of the boxes:
 
     sudo ip netns exec box0 ip addr show dev eth0

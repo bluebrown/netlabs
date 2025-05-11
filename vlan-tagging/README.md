@@ -1,5 +1,19 @@
 # VLAN Tagging
 
+```mermaid
+graph BT
+    subgraph vlan10
+        box0
+        box1
+    end
+    subgraph vlan20
+        box2
+    end
+    bridge0 --> box0
+    bridge0 --> box1
+    bridge0 --> box2
+```
+
 Check if vlan filtering is enabled on the bridge:
 
     cat /sys/class/net/bridge0/bridge/vlan_filtering

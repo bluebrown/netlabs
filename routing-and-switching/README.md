@@ -1,5 +1,23 @@
 # Routing
 
+```mermaid
+graph BT
+    subgraph subnet 10
+      switch0
+      host0
+      host1
+    end
+    subgraph subnet 20
+      switch1
+      host2
+      host3
+    end
+    router0-->switch0-->host0
+    switch0-->host1
+    router0-->switch1-->host2
+    switch1-->host3
+```
+
 Check on the resources:
 
     echo router
