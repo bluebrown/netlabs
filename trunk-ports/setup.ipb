@@ -1,0 +1,57 @@
+# setup the router namespace
+netns add router0
+netns exec router0 sysctl -w net.ipv4.ip_forward=1
+
+# setup the swich namespace
+netns add switch0
+netns exec switch0 ip link add bridge0 type bridge
+netns exec switch0 ip link set bridge0 up
+
+# create veth pair for the trunk
+link add router0 netns switch0 type veth peer switch0 netns router0
+
+# subinterfaces in switch ns
+netns exec switch0 ip link set router0 up
+netns exec switch0 ip link add link router0 name router0.10 type vlan id 10
+netns exec switch0 ip link add link router0 name router0.20 type vlan id 20
+netns exec switch0 ip link set router0.10 up
+netns exec switch0 ip link set router0.20 up
+
+# subinterfaces in switch ns
+netns exec router0 ip link set switch0 up
+netns exec router0 ip link add link switch0 name switch0.10 type vlan id 10
+netns exec router0 ip link add link switch0 name switch0.20 type vlan id 20
+netns exec router0 ip link set switch0.10 up
+netns exec router0 ip link set switch0.20 up
+
+# enslave the subinterfaces to the bridge
+netns exec switch0 ip link set router0.10 master bridge0
+netns exec switch0 ip link set router0.20 master bridge0
+
+# add default gateway ips for both vlan interfaces
+netns exec router0 ip link set switch0 up
+netns exec router0 ip addr add 192.168.10.1/24 dev switch0.10
+netns exec router0 ip addr add 192.168.20.1/24 dev switch0.20
+
+# create a host for vlan 10. Its default gw is set to the vlan 10
+# subinterface in the router namespace
+netns add host0
+netns exec host0 ip link add eth0 type veth peer host0 netns switch0
+netns exec host0 ip addr add 192.168.10.100/24 dev eth0
+netns exec host0 ip link set eth0 up
+netns exec switch0 ip link set host0 master bridge0
+netns exec switch0 ip link set host0 up
+netns exec host0 ip route add default via 192.168.10.1 dev eth0
+
+# create another host for vlan 20, pointing to the vlan 20 gw
+netns add host1
+netns exec host1 ip link add eth0 type veth peer host1 netns switch0
+netns exec host1 ip addr add 192.168.20.100/24 dev eth0
+netns exec host1 ip link set eth0 up
+netns exec switch0 ip link set host1 master bridge0
+netns exec switch0 ip link set host1 up
+netns exec host1 ip route add default via 192.168.20.1 dev eth0
+
+# configure port vlan ids and untagg for access ports
+netns exec switch0 bridge vlan add vid 10 dev host0 pvid untagged
+netns exec switch0 bridge vlan add vid 20 dev host1 pvid untagged
