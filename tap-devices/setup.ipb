@@ -1,3 +1,0 @@
-tuntap add dev tap0 mode tap
-link set dev tap0 up
-addr add 192.168.0.10/24 dev tap0

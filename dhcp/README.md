@@ -10,15 +10,15 @@ network.
 
 Get the IP address of the host machine:
 
-    sudo ip netns exec box dhclient -pf $PWD/dhclient.pid veth0
+    ip netns exec box dhclient -pf $PWD/dhclient.pid veth0
 
 Check the IP address:
 
-    sudo ip netns exec box ip -br addr
+    ip netns exec box ip -br addr
 
 Check the default gateway:
 
-    sudo ip netns exec box ip -br route
+    ip netns exec box ip -br route
 
 ## How it works
 

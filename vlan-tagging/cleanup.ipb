@@ -1,4 +1,0 @@
-netns del box0
-netns del box1
-netns del box2
-link del bridge0

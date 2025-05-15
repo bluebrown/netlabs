@@ -1,3 +1,0 @@
-netns del box0
-netns del box1
-link del bridge0

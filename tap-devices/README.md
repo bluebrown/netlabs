@@ -11,7 +11,7 @@ Generating frames:
 
 Observing frames:
 
-    sudo tcpdump -i tap0 -e -n -vvv
+    tcpdump -i tap0 -e -n -vvv
 
 Inspect ARP table:
 

@@ -37,3 +37,20 @@ function netclean() {
 }
 
 export -f netclean
+
+function assert_ping() {
+  local msg="$1"
+  local ns="$2"
+  local ip="$3"
+  local iface="${4:-eth0}"
+
+  printf "\n[*] %s\n" "$msg"
+  if ! sudo ip netns exec "$ns" ping -W 1 -c 1 -I "$iface" "$ip" | head -n 2; then
+    echo FAIL
+    exit 1
+  fi
+
+  echo PASS
+}
+
+export -f assert_ping

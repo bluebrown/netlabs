@@ -2,7 +2,7 @@
 set -e
 
 # the vnet script contains the automation logic
-source "$(dirname "$(readlink -f "$0")")/vnet.sh"
+source "$(dirname "$(readlink -f "$0")")/lib.sh"
 
 # a router to router between two subnets
 router::new r1
